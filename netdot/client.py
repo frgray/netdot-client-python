@@ -49,15 +49,15 @@ class client(object):
 			self.retries = 3
 			self.version = __version__
 			self.headers = {
-							'User_Agent':'Netdot::Client::REST/self.version',
-							'Accept':'text/xml; version=1.0'
-							}
+					'User_Agent':'Netdot::Client::REST/self.version',
+					'Accept':'text/xml; version=1.0'
+					}
 			self.params = {
-							'destination':'index.html', 
-							'credential_0':self.user, 
-							'credential_1':self.pw, 
-							'permanent_session':1
-							}
+					'destination':'index.html', 
+					'credential_0':self.user, 
+					'credential_1':self.pw, 
+					'permanent_session':1
+					}
 			self._login()											 # Call the _login() function 
 		else:
 			raise ParameterError('user, password and server are required')
@@ -81,7 +81,6 @@ class client(object):
 
 	def delete(self, url):
 		response = requests.delete(self.base_url + url, cookies=self.auth_cookies, headers=self.headers)
-		pp.pprint(response)
 		if response.status_code == 200:
 			return response.content
 				
