@@ -29,7 +29,7 @@ SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGES.
 """
 
-import os, sys
+import os, sys, re
 import requests
 
 #my_config = {'verbose':sys.stderr} # Request Debugging
@@ -37,8 +37,22 @@ import requests
 __version__ = '0.01' ## Not always updated
 
 class client(object):
-	def __init__(self, username=None, password=None, server=None):
-		"""Constructor
+	def __init__(self, username, password, server):
+		"""__init__():
+				Usage:
+					uname = 'my_user'
+					pword = 'my_pass'
+					server = "https://netdot.localdomain/netdot"
+					import netdot
+					dot = netdot.client(uname,pword,server)
+			
+				Description: 
+					Class constructor, instantiates a number of 
+				variables for use in the class.  Mainly the required
+				NetDot HTTP headers and login form parameters.
+			
+				Returns: 
+					NetDot.client object.
 		"""
 		if username and password and server:
 			self.user = username
@@ -60,47 +74,218 @@ class client(object):
 					}
 			self._login()											 # Call the _login() function 
 		else:
-			raise ParameterError('user, password and server are required')
+			raise AttributeError('Username, Password and Server are REQUIRED')
 		
 	def _login(self):
+		"""_login():
+				Description: 
+					Internal Function. Logs into the NetDot API with provided credentials, 
+				stores the Apache generated cookies into the self object to be 
+				reused.  
+		"""
 		response = requests.post(self.login_url, data=self.params, headers=self.headers)
 		if response.status_code == 200:
 			self.auth_cookies = response.cookies
 		else:
-			raise LoginError('Invalid Credentials')
+			raise AttributeError('Invalid Credentials')
 
 	def get(self, url):
+		"""get():
+				Usage:
+					response = netdot.client.get("/url")
+			
+				Description: 
+					This function provides a simple interface
+				into the "GET" function by handling the authentication
+				cookies as well as the required headers and base_url for 
+				each request.  
+			
+				Returns: 
+					Result as a multi-level dictionary on sucess. 
+		"""
 		response = requests.get(self.base_url + url, cookies=self.auth_cookies, headers=self.headers)
-		if response.status_code == 200:
-			return response.content
+		if response.error:
+			raise HTTPError
+ 		if response.status_code == 200:
+			xmlmatch = re.search(r'\<opt.*', response.content)		
+			if xmlmatch:
+				return self._parseXML(response.content)
+			else:
+				print response.content
+		else: 
+			raise Exception('Non-200 Return Code: %s, Content: %s' % (response.status_code, response.content))
+
 			
 	def post(self, url, data):
+		"""post():
+				Usage:
+					response = netdot.client.post("/url", {form-data})
+			
+				Description: 
+					This function provides a simple interface
+				into the "POST" function by handling the authentication
+				cookies as well as the required headers and base_url for 
+				each request.  
+			
+				Returns: 
+					Result as a multi-level dictionary on success
+		"""
 		response = requests.post(self.base_url + url, cookies=self.auth_cookies, data=data, headers=self.headers)
-		if response.status_code == 200:
-			return response.content
+		if response.error:
+			raise HTTPError
+ 		if response.status_code == 200:
+			xmlmatch = re.search(r'\<opt.*', response.content)		
+			if xmlmatch:
+				return self._parseXML(response.content)
+			else:
+				print response.content
+		else: 
+			raise Exception('Non-200 Return Code: %s, Content: %s' % (response.status_code, response.content))
 
 	def delete(self, url):
+		"""delete():
+				Usage: 
+					response = netdot.client.delete("/url")
+
+				Description: 
+					This function provides a simple interface
+				into the "DELETE" function by handling the authentication
+				cookies as well as the required headers and base_url for 
+				each request.  
+
+				Returns: 
+					Result as a multi-level dictionary
+		"""
 		response = requests.delete(self.base_url + url, cookies=self.auth_cookies, headers=self.headers)
-		if response.status_code == 200:
-			return response.content
+		if response.error:
+			raise HTTPError
+ 		if response.status_code == 200:
+			xmlmatch = re.search(r'\<opt.*', response.content)		
+			if xmlmatch:
+				return self._parseXML(response.content)
+			else:
+				print response.content
+		else: 
+			raise Exception('Non-200 Return Code: %s, Content: %s' % (response.status_code, response.content))
+
 				
 	def getHostByIPID(self, id):
+		"""getHostByIPID():
+				Usage:
+					response = netdot.client.getHostByIPID("1111")
+					
+				Description: 
+					This function returns a NetDot-XML object 
+				for the requested IP ID.
+				
+				Returns:
+					Multi-level dictionary on success.
+		"""
 		return self.get("/host?ipid=" + id)
 
 	def getHostByRRID(self, id):
+		"""getHostByRRID():
+				Description: 
+					This function returns a multi-level dictionary object 
+				for the requested RR ID.
+				
+				Returns:
+					Multi-level dictionary on success.
+		"""
 		return self.get("/host?rrid=" + id)
 
 	def getHostByName(self, name):
+		"""getHostByName():
+				Usage: 
+					response = netdot.client.getHostByName("host")
+					
+				Description: 
+					This function returns a NetDot-XML object 
+				for the requested shortname.
+				
+				Returns:
+					Multi-level dictionary on success.
+		"""
 		return self.get("/host?name=" + name)
 		
 	def getIPBlock(self, ipblock):
+		"""getIPBlock():
+				Usage: 
+					response = netdot.client.getIPBlock('192.168.1.0/24')
+				
+				Description: 
+					This function returns all of the host 
+				records from the provided ip block.
+				
+				Returns:
+					Array of NetDot-XML objects on success
+		"""		
 		return self.get("/host?subnet=" + ipblock)
 	
+	def renameHost(self, old, new):
+		"""renameHost():
+				Usage: 
+					netdot.client.renameHost('old-name','new-name')
+				
+				Description: 
+						This function will rename a host record.  Previously, 
+					the user had to query know the RRID of the record, then 
+					post the updated name to the RRID record.  This function
+					automates the RRID search and constructs the post request 
+					for you.
+		"""
+		host = self.getHostByName(old)
+		rrid = host['RR']['id']
+		data = {}
+		data['name'] = new
+		return self.post("/host?rrid=" + rrid, data)
+
 	def createHost(self, data):
+		"""createHost():
+				Usage: 
+					response = netdot.client.createHost({'name':'my-server',
+															'subnet':'192.168.1.0/24',
+															'ethernet':'XX:XX:XX:XX:XX:XX',
+															'info':'My Server'})
+				Description: 
+					This function takes a dict and creates a new 
+				record in the subnet '192.168.1.0/24' with an ethernet 
+				address of 'XX:XX:XX:XX:XX:XX' and a comment of 'My Server'.  
+
+				Returns: 
+					Created record as a multi-level dictionary.
+		"""		
 		return self.post("/host", data)
 		
 	def deleteHostByRRID(self, rrid):
+		"""deleteHostByRRID():
+				Usage:
+					response = netdot.client.deleteHostByRRD("1111")
+					 
+				Description: 
+					This function deletes a hostname record
+				for the requested RR ID. This also frees the IP.
+				
+				Returns:
+					
+		"""	
 		return self.delete("/host?rrid=" + rrid)
-		
-		
-		
+	
+	def _parseXML(self, xml):
+		"""_parseXML():
+			Description: 
+					This is a VERY simple parser specifically built to 
+				parse the NetDot-XML Objects
+				
+			Returns: 
+				Multi-level dictionary.
+		"""
+		import xml.etree.ElementTree as ET
+		data = {}
+		xml_root = ET.fromstring(xml)
+		for child in xml_root:
+			data[child.tag] = {}
+			for attribute in child.attrib:
+				data[child.tag][attribute] = child.attrib[attribute]
+		return data
+	
