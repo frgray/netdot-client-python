@@ -10,15 +10,13 @@ Copyright (c) 2012 University of Oregon. All rights reserved.
 import sys
 import os
 import netdot
-from xml.dom.ext.reader import Sax2
-# OR
-#from netdot import client
 
 uname = 'my_user'
 pword = 'my_pass'
 server = "https://netdot.localdomain/netdot"
+rawoutput = 1
 
-dot = netdot.client(uname,pword,server)
+dot = netdot.client(uname, pword, server, [rawoutput])
 
 #r = dot.get('/host?name=my-server-name')
 #r = dot.post('/host', host)
