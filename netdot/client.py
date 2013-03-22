@@ -37,7 +37,7 @@ import requests
 __version__ = '0.01' ## Not always updated
 
 class client(object):
-	def __init__(self, username, password, server):
+	def __init__(self, username, password, server, raw):
 		"""__init__():
 				Usage:
 					uname = 'my_user'
@@ -54,6 +54,8 @@ class client(object):
 				Returns: 
 					NetDot.client object.
 		"""
+		if raw == 1:
+			self.raw = True
 		if username and password and server:
 			self.user = username
 			self.pw = password
@@ -72,7 +74,8 @@ class client(object):
 					'credential_1':self.pw, 
 					'permanent_session':1
 					}
-			self._login()											 # Call the _login() function 
+			# Call the _login() function 		
+			self._login()
 		else:
 			raise AttributeError('Username, Password and Server are REQUIRED')
 		
@@ -104,6 +107,8 @@ class client(object):
 					Result as a multi-level dictionary on sucess. 
 		"""
 		response = requests.get(self.base_url + url, cookies=self.auth_cookies, headers=self.headers)
+		if self.raw:
+			return response.content
 		if response.error:
 			raise HTTPError
  		if response.status_code == 200:
@@ -112,6 +117,8 @@ class client(object):
 				return self._parseXML(response.content)
 			else:
 				print response.content
+		if response.status_code == 403:
+			print 'HTTP/1.1 - GET %s - ACCESS DENIED' % url
 		else: 
 			raise Exception('Non-200 Return Code: %s, Content: %s' % (response.status_code, response.content))
 
@@ -131,6 +138,8 @@ class client(object):
 					Result as a multi-level dictionary on success
 		"""
 		response = requests.post(self.base_url + url, cookies=self.auth_cookies, data=data, headers=self.headers)
+		if self.raw:
+			return response.content
 		if response.error:
 			raise HTTPError
  		if response.status_code == 200:
@@ -139,6 +148,8 @@ class client(object):
 				return self._parseXML(response.content)
 			else:
 				print response.content
+		if response.status_code == 403:
+			print 'HTTP/1.1 - POST %s - ACCESS DENIED' % url
 		else: 
 			raise Exception('Non-200 Return Code: %s, Content: %s' % (response.status_code, response.content))
 
@@ -157,6 +168,8 @@ class client(object):
 					Result as a multi-level dictionary
 		"""
 		response = requests.delete(self.base_url + url, cookies=self.auth_cookies, headers=self.headers)
+		if self.raw:
+			return response.content
 		if response.error:
 			raise HTTPError
  		if response.status_code == 200:
@@ -165,6 +178,8 @@ class client(object):
 				return self._parseXML(response.content)
 			else:
 				print response.content
+		if response.status_code == 403:
+			print 'HTTP/1.1 - DELETE %s - ACCESS DENIED' % url
 		else: 
 			raise Exception('Non-200 Return Code: %s, Content: %s' % (response.status_code, response.content))
 
@@ -244,9 +259,9 @@ class client(object):
 		"""createHost():
 				Usage: 
 					response = netdot.client.createHost({'name':'my-server',
-															'subnet':'192.168.1.0/24',
-															'ethernet':'XX:XX:XX:XX:XX:XX',
-															'info':'My Server'})
+					'subnet':'192.168.1.0/24',
+					'ethernet':'XX:XX:XX:XX:XX:XX',
+					'info':'My Server'})
 				Description: 
 					This function takes a dict and creates a new 
 				record in the subnet '192.168.1.0/24' with an ethernet 
