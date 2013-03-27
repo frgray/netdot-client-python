@@ -37,7 +37,7 @@ import requests
 __version__ = '0.01' ## Not always updated
 
 class client(object):
-	def __init__(self, username, password, server, raw):
+	def __init__(self, username, password, server, debug):
 		"""__init__():
 				Usage:
 					uname = 'my_user'
@@ -54,8 +54,8 @@ class client(object):
 				Returns: 
 					NetDot.client object.
 		"""
-		if raw == 1:
-			self.raw = True
+		if debug == 1:
+			self.debug = True
 		if username and password and server:
 			self.user = username
 			self.pw = password
@@ -107,7 +107,7 @@ class client(object):
 					Result as a multi-level dictionary on sucess. 
 		"""
 		response = requests.get(self.base_url + url, cookies=self.auth_cookies, headers=self.headers)
-		if self.raw:
+		if self.debug:
 			return response.content
 		if response.error:
 			raise HTTPError
@@ -138,7 +138,7 @@ class client(object):
 					Result as a multi-level dictionary on success
 		"""
 		response = requests.post(self.base_url + url, cookies=self.auth_cookies, data=data, headers=self.headers)
-		if self.raw:
+		if self.debug:
 			return response.content
 		if response.error:
 			raise HTTPError
@@ -168,7 +168,7 @@ class client(object):
 					Result as a multi-level dictionary
 		"""
 		response = requests.delete(self.base_url + url, cookies=self.auth_cookies, headers=self.headers)
-		if self.raw:
+		if self.debug:
 			return response.content
 		if response.error:
 			raise HTTPError
@@ -280,12 +280,106 @@ class client(object):
 				Description: 
 					This function deletes a hostname record
 				for the requested RR ID. This also frees the IP.
-				
-				Returns:
-					
 		"""	
 		return self.delete("/host?rrid=" + rrid)
+		
+		def getHostByAddress(self, address):
+			"""getHostByAddress():
+					Usage:
+						response = netdot.client.getHostByIPID("192.168.0.1")
+
+					Description: 
+						This function returns a NetDot-XML object 
+					for the requested IP Address.
 	
+					Returns:
+						Multi-level dictionary on success.
+			"""
+			return self.get("/host?address=" + address)
+
+		def getPersonByUsername(self, user):
+			"""getPersonByUsername():
+					Usage:
+						response = netdot.client.getPersonByUsername("user")
+
+					Description:
+						This function returns a NetDot-XML object
+					for the requested Username
+		
+					Returns:
+						Multi-level dictionary on success.
+			"""
+			return self.get("/person?username=" + user)
+
+		def getObjectByID(self, object, id):
+			"""getObjectByID():
+				Usage:
+					response = netdot.client.getObjectByID("object", "id")
+
+				Description:
+					This function returns a NetDot-XML object 
+				for the request object and id
+
+				Return:
+					Multi-level dictionary on success
+			"""
+			return self.get("/" + object + "?id=" + id)
+
+		def getContactByPersonID(self, id):
+			"""getContactByPersonID():
+					Usage:
+						response = netdot.client.getContactByPersonID("id")
+
+					Description:
+						This function returns a NetDot-XML object
+					for the requested Contact
+
+					Returns:
+						Multi-level dictionary on success.
+			"""
+			return self.get("/contact?person=" + id)
+
+		def getGrouprightByConlistID(self, id):
+			"""getGrouprightByConlistID():
+					Usage:
+						response = netdot.client.getGrouprightByConlistID("id")
+
+					Description:
+							This function returns a NetDot-XML object
+						for the requested Contact
+
+					Returns:
+						Multi-level dictionary on success.
+			"""
+			return self.get("/groupright?contactlist=" + id)
+
+			
+		def filterDict(self, dict, kword):
+			"""filterDict()
+				Usage:
+					dot.filterDict(dict, ['list', 'of', '.*keywords'])
+
+				Description:
+					This function discends into the Multi-level
+				dictionary and returns a list of [filtered] key value pairs
+
+				Returns:
+					Multi-level dictionary on success
+			"""
+			data = {}
+			for top_k, top_v in dict.items():
+				data[top_k] = {}
+				for mid_k, mid_v in top_v.items():
+					data[top_k][mid_k] = {}
+					for bot_k, bot_v in mid_v.items():
+						if kword:
+							re_comb = "(" + ")|(".join(kword) + ")"
+							if re.match(re_comb, bot_k):
+								data[top_k][mid_k][bot_k] = bot_v
+						else:
+							data[top_k][mid_k][bot_k] = bot_v
+			return data
+			
 	def _parseXML(self, xml):
 		"""_parseXML():
 			Description: 

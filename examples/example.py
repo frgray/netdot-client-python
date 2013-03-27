@@ -36,9 +36,9 @@ import netdot
 uname = 'my_user'
 pword = 'my_pass'
 server = "https://netdot.localdomain/netdot"
-rawoutput = 1
+debug = 1
 
-dot = netdot.client(uname, pword, server, [rawoutput])
+dot = netdot.client(uname, pword, server, [debug])
 
 #r = dot.get('/host?name=my-server-name')
 #r = dot.post('/host', host)
