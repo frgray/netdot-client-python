@@ -37,7 +37,7 @@ import requests
 __version__ = '0.01' ## Not always updated
 
 class client(object):
-	def __init__(self, username, password, server, debug):
+	def __init__(self, username, password, server, debug = 0):
 		"""__init__():
 				Usage:
 					uname = 'my_user'
@@ -107,7 +107,7 @@ class client(object):
 					Result as a multi-level dictionary on sucess. 
 		"""
 		response = requests.get(self.base_url + url, cookies=self.auth_cookies, headers=self.headers)
-		if self.debug:
+		if hasattr(client, 'debug'):
 			return response.content
 		if response.error:
 			raise HTTPError
@@ -138,7 +138,7 @@ class client(object):
 					Result as a multi-level dictionary on success
 		"""
 		response = requests.post(self.base_url + url, cookies=self.auth_cookies, data=data, headers=self.headers)
-		if self.debug:
+		if hasattr(client, 'debug'):
 			return response.content
 		if response.error:
 			raise HTTPError
@@ -168,7 +168,7 @@ class client(object):
 					Result as a multi-level dictionary
 		"""
 		response = requests.delete(self.base_url + url, cookies=self.auth_cookies, headers=self.headers)
-		if self.debug:
+		if hasattr(client, 'debug'):
 			return response.content
 		if response.error:
 			raise HTTPError
