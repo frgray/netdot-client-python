@@ -37,7 +37,7 @@ import requests
 __version__ = '0.01' ## Not always updated
 
 class client(object):
-	def __init__(self, username, password, server):
+	def __init__(self, username, password, server, raw):
 		"""__init__():
 				Usage:
 					uname = 'my_user'
@@ -54,6 +54,8 @@ class client(object):
 				Returns: 
 					NetDot.client object.
 		"""
+		if raw == 1:
+			self.raw = True
 		if username and password and server:
 			self.user = username
 			self.pw = password
@@ -72,7 +74,8 @@ class client(object):
 					'credential_1':self.pw, 
 					'permanent_session':1
 					}
-			self._login()											 # Call the _login() function 
+			# Call the _login() function 		
+			self._login()
 		else:
 			raise AttributeError('Username, Password and Server are REQUIRED')
 		
@@ -104,6 +107,8 @@ class client(object):
 					Result as a multi-level dictionary on sucess. 
 		"""
 		response = requests.get(self.base_url + url, cookies=self.auth_cookies, headers=self.headers)
+		if self.raw:
+			return response.content
 		if response.error:
 			raise HTTPError
  		if response.status_code == 200:
@@ -112,6 +117,8 @@ class client(object):
 				return self._parseXML(response.content)
 			else:
 				print response.content
+		if response.status_code == 403:
+			print 'HTTP/1.1 - GET %s - ACCESS DENIED' % url
 		else: 
 			raise Exception('Non-200 Return Code: %s, Content: %s' % (response.status_code, response.content))
 
@@ -131,6 +138,8 @@ class client(object):
 					Result as a multi-level dictionary on success
 		"""
 		response = requests.post(self.base_url + url, cookies=self.auth_cookies, data=data, headers=self.headers)
+		if self.raw:
+			return response.content
 		if response.error:
 			raise HTTPError
  		if response.status_code == 200:
@@ -139,6 +148,8 @@ class client(object):
 				return self._parseXML(response.content)
 			else:
 				print response.content
+		if response.status_code == 403:
+			print 'HTTP/1.1 - POST %s - ACCESS DENIED' % url
 		else: 
 			raise Exception('Non-200 Return Code: %s, Content: %s' % (response.status_code, response.content))
 
@@ -157,6 +168,8 @@ class client(object):
 					Result as a multi-level dictionary
 		"""
 		response = requests.delete(self.base_url + url, cookies=self.auth_cookies, headers=self.headers)
+		if self.raw:
+			return response.content
 		if response.error:
 			raise HTTPError
  		if response.status_code == 200:
@@ -165,6 +178,8 @@ class client(object):
 				return self._parseXML(response.content)
 			else:
 				print response.content
+		if response.status_code == 403:
+			print 'HTTP/1.1 - DELETE %s - ACCESS DENIED' % url
 		else: 
 			raise Exception('Non-200 Return Code: %s, Content: %s' % (response.status_code, response.content))
 
@@ -182,20 +197,6 @@ class client(object):
 					Multi-level dictionary on success.
 		"""
 		return self.get("/host?ipid=" + id)
-
-	def getHostByAddress(self, address):
-		"""getHostByAddress():
-				Usage:
-					response = netdot.client.getHostByIPID("192.168.0.1")
-					
-				Description: 
-					This function returns a NetDot-XML object 
-				for the requested IP Address.
-				
-				Returns:
-					Multi-level dictionary on success.
-		"""
-		return self.get("/host?address=" + address)
 
 	def getHostByRRID(self, id):
 		"""getHostByRRID():
@@ -235,62 +236,6 @@ class client(object):
 					Array of NetDot-XML objects on success
 		"""		
 		return self.get("/host?subnet=" + ipblock)
-
-	def getPersonByUsername(self, user):
-		"""getPersonByUsername():
-				Usage:
-					response = netdot.client.getPersonByUsername("user")
-
-					Description
-						This function returns a NetDot-XML object
-					for the requested Username
-
-					Returns:
-						Multi-level dictionary on success.
-		"""
-		return self.get("/person?username=" + user)
-
-	def getObjectByID(self, object, id):
-		"""getObjectByID():
-			Usage:
-				response = netdot.client.getObjectByID("object", "id")
-
-				Description
-					This function returns a NetDot-XML object 
-				for the request object and id
-
-				Return:
-					Multi-level dictionary on success
-		"""
-		return self.get("/" + object + "?id=" + id)
-
-	def getContactByPersonID(self, id):
-		"""getContactByPersonID():
-				Usage:
-					response = netdot.client.getContactByPersonID("id")
-
-					Description
-						This function returns a NetDot-XML object
-					for the requested Contact
-
-					Returns:
-						Multi-level dictionary on success.
-		"""
-		return self.get("/contact?person=" + id)
-
-	def getGrouprightByConlistID(self, id):
-		"""getGrouprightByConlistID():
-				Usage:
-					response = netdot.client.getGrouprightByConlistID("id")
-
-					Description
-						This function returns a NetDot-XML object
-					for the requested Contact
-
-					Returns:
-						Multi-level dictionary on success.
-		"""
-		return self.get("/groupright?contactlist=" + id)
 	
 	def renameHost(self, old, new):
 		"""renameHost():
@@ -314,9 +259,9 @@ class client(object):
 		"""createHost():
 				Usage: 
 					response = netdot.client.createHost({'name':'my-server',
-															'subnet':'192.168.1.0/24',
-															'ethernet':'XX:XX:XX:XX:XX:XX',
-															'info':'My Server'})
+					'subnet':'192.168.1.0/24',
+					'ethernet':'XX:XX:XX:XX:XX:XX',
+					'info':'My Server'})
 				Description: 
 					This function takes a dict and creates a new 
 				record in the subnet '192.168.1.0/24' with an ethernet 
@@ -340,34 +285,7 @@ class client(object):
 					
 		"""	
 		return self.delete("/host?rrid=" + rrid)
-
-	def filterDict(self, dict, kword):
-		"""filterDict()
-			Usage:
-				dot.filterDict(dict, ['list', 'of', '.*keywords'])
-
-				Description
-					This function discends into the Multi-level
-				dictionary and returns a list of [filtered] key value pairs
-
-				Returns:
-					Multi-level dictionary on success
-		"""
-		data= {}
-
-		for top_k, top_v in dict.items():
-			data[top_k] = {}
-			for mid_k, mid_v in top_v.items():
-				data[top_k][mid_k] = {}
-				for bot_k, bot_v in mid_v.items():
-					if kword:
-						re_comb = "(" + ")|(".join(kword) + ")"
-						if re.match(re_comb, bot_k):
-							data[top_k][mid_k][bot_k] = bot_v
-					else:
-						data[top_k][mid_k][bot_k] = bot_v
-		return data
-
+	
 	def _parseXML(self, xml):
 		"""_parseXML():
 			Description: 
@@ -381,10 +299,8 @@ class client(object):
 		data = {}
 		xml_root = ET.fromstring(xml)
 		for child in xml_root:
-			if child.tag in data:
-				data[child.tag][child.attrib["id"]] = child.attrib
-			else:
-				data[child.tag] ={}
-				data[child.tag][child.attrib["id"]] = child.attrib
+			data[child.tag] = {}
+			for attribute in child.attrib:
+				data[child.tag][attribute] = child.attrib[attribute]
 		return data
 	
