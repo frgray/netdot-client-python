@@ -283,102 +283,101 @@ class client(object):
 		"""	
 		return self.delete("/host?rrid=" + rrid)
 		
-		def getHostByAddress(self, address):
-			"""getHostByAddress():
-					Usage:
-						response = netdot.client.getHostByIPID("192.168.0.1")
-
-					Description: 
-						This function returns a NetDot-XML object 
-					for the requested IP Address.
-	
-					Returns:
-						Multi-level dictionary on success.
-			"""
-			return self.get("/host?address=" + address)
-
-		def getPersonByUsername(self, user):
-			"""getPersonByUsername():
-					Usage:
-						response = netdot.client.getPersonByUsername("user")
-
-					Description:
-						This function returns a NetDot-XML object
-					for the requested Username
-		
-					Returns:
-						Multi-level dictionary on success.
-			"""
-			return self.get("/person?username=" + user)
-
-		def getObjectByID(self, object, id):
-			"""getObjectByID():
+	def getHostByAddress(self, address):
+		"""getHostByAddress():
 				Usage:
-					response = netdot.client.getObjectByID("object", "id")
+					response = netdot.client.getHostByIPID("192.168.0.1")
+
+				Description: 
+					This function returns a NetDot-XML object 
+				for the requested IP Address.
+	
+				Returns:
+					Multi-level dictionary on success.
+		"""
+		return self.get("/host?address=" + address)
+
+	def getPersonByUsername(self, user):
+		"""getPersonByUsername():
+				Usage:
+					response = netdot.client.getPersonByUsername("user")
 
 				Description:
-					This function returns a NetDot-XML object 
-				for the request object and id
+					This function returns a NetDot-XML object
+				for the requested Username
+		
+				Returns:
+					Multi-level dictionary on success.
+		"""
+		return self.get("/person?username=" + user)
 
-				Return:
-					Multi-level dictionary on success
-			"""
-			return self.get("/" + object + "?id=" + id)
+	def getObjectByID(self, object, id):
+		"""getObjectByID():
+			Usage:
+				response = netdot.client.getObjectByID("object", "id")
 
-		def getContactByPersonID(self, id):
-			"""getContactByPersonID():
-					Usage:
-						response = netdot.client.getContactByPersonID("id")
+			Description:
+				This function returns a NetDot-XML object 
+			for the request object and id
 
-					Description:
+			Return:
+				Multi-level dictionary on success
+		"""
+		return self.get("/" + object + "?id=" + id)
+
+	def getContactByPersonID(self, id):
+		"""getContactByPersonID():
+				Usage:
+					response = netdot.client.getContactByPersonID("id")
+
+				Description:
+					This function returns a NetDot-XML object
+				for the requested Contact
+
+				Returns:
+					Multi-level dictionary on success.
+		"""
+		return self.get("/contact?person=" + id)
+
+	def getGrouprightByConlistID(self, id):
+		"""getGrouprightByConlistID():
+				Usage:
+					response = netdot.client.getGrouprightByConlistID("id")
+
+				Description:
 						This function returns a NetDot-XML object
 					for the requested Contact
 
-					Returns:
-						Multi-level dictionary on success.
-			"""
-			return self.get("/contact?person=" + id)
-
-		def getGrouprightByConlistID(self, id):
-			"""getGrouprightByConlistID():
-					Usage:
-						response = netdot.client.getGrouprightByConlistID("id")
-
-					Description:
-							This function returns a NetDot-XML object
-						for the requested Contact
-
-					Returns:
-						Multi-level dictionary on success.
-			"""
-			return self.get("/groupright?contactlist=" + id)
-
-			
-		def filterDict(self, dict, kword):
-			"""filterDict()
-				Usage:
-					dot.filterDict(dict, ['list', 'of', '.*keywords'])
-
-				Description:
-					This function discends into the Multi-level
-				dictionary and returns a list of [filtered] key value pairs
-
 				Returns:
-					Multi-level dictionary on success
-			"""
-			data = {}
-			for top_k, top_v in dict.items():
-				data[top_k] = {}
-				for mid_k, mid_v in top_v.items():
-					data[top_k][mid_k] = {}
-					for bot_k, bot_v in mid_v.items():
-						if kword:
-							re_comb = "(" + ")|(".join(kword) + ")"
-							if re.match(re_comb, bot_k):
-								data[top_k][mid_k][bot_k] = bot_v
-						else:
+					Multi-level dictionary on success.
+		"""
+		return self.get("/groupright?contactlist=" + id)
+	
+	def filterDict(self, dict, kword):
+		"""filterDict()
+			Usage:
+				dot.filterDict(dict, ['list', 'of', '.*keywords'])
+
+			Description:
+				This function discends into the Multi-level
+			dictionary and returns a list of [filtered] key value pairs
+
+			Returns:
+				Multi-level dictionary on success
+		"""
+		data = {}
+		for top_k, top_v in dict.items():
+			data[top_k] = {}
+			for mid_k, mid_v in top_v.items():
+				data[top_k][mid_k] = {}
+				for bot_k, bot_v in mid_v.items():
+					if kword:
+						re_comb = "(" + ")|(".join(kword) + ")"
+						if re.match(re_comb, bot_k):
 							data[top_k][mid_k][bot_k] = bot_v
-			return data
+					else:
+						data[top_k][mid_k][bot_k] = bot_v
+		return data
 			
 	def _parseXML(self, xml):
 		"""_parseXML():
