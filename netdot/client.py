@@ -32,9 +32,7 @@ SUCH DAMAGES.
 import os, sys, re
 import requests
 
-#my_config = {'verbose':sys.stderr} # Request Debugging
-
-__version__ = '0.01' ## Not always updated
+__version__ = '0.03' ## Not always updated
 
 class client(object):
 	def __init__(self, username, password, server, debug = 0):
@@ -56,9 +54,8 @@ class client(object):
 		"""
 		if debug == 1:
 			self.debug = True
+			print "DEBUG MODE: ON"
 		if username and password and server:
-			self.user = username
-			self.pw = password
 			self.base_url = server + '/rest'
 			self.login_url = server + '/NetdotLogin'
 			self.timeout = 10
@@ -68,27 +65,27 @@ class client(object):
 					'User_Agent':'Netdot::Client::REST/self.version',
 					'Accept':'text/xml; version=1.0'
 					}
-			self.params = {
+			params = {
 					'destination':'index.html', 
-					'credential_0':self.user, 
-					'credential_1':self.pw, 
+					'credential_0':username, 
+					'credential_1':password, 
 					'permanent_session':1
 					}
 			# Call the _login() function 		
-			self._login()
+			self._login(params)
 		else:
 			raise AttributeError('Username, Password and Server are REQUIRED')
 		
-	def _login(self):
+	def _login(self,params):
 		"""_login():
 				Description: 
 					Internal Function. Logs into the NetDot API with provided credentials, 
 				stores the Apache generated cookies into the self object to be 
 				reused.  
 		"""
-		response = requests.post(self.login_url, data=self.params, headers=self.headers)
+		response = requests.post(self.login_url, data=params, headers=self.headers)
 		if response.status_code == 200:
-			self.auth_cookies = response.cookies
+			self.auth_cookies = response.request.cookies
 		else:
 			raise AttributeError('Invalid Credentials')
 
@@ -107,8 +104,8 @@ class client(object):
 					Result as a multi-level dictionary on sucess. 
 		"""
 		response = requests.get(self.base_url + url, cookies=self.auth_cookies, headers=self.headers)
-		if hasattr(client, 'debug'):
-			return response.content
+		if hasattr(self, 'debug'):
+			self._dump(response)
 		if response.error:
 			raise HTTPError
  		if response.status_code == 200:
@@ -139,7 +136,7 @@ class client(object):
 		"""
 		response = requests.post(self.base_url + url, cookies=self.auth_cookies, data=data, headers=self.headers)
 		if hasattr(client, 'debug'):
-			return response.content
+			self._dump(response)
 		if response.error:
 			raise HTTPError
  		if response.status_code == 200:
@@ -169,7 +166,7 @@ class client(object):
 		"""
 		response = requests.delete(self.base_url + url, cookies=self.auth_cookies, headers=self.headers)
 		if hasattr(client, 'debug'):
-			return response.content
+			self._dump(response)
 		if response.error:
 			raise HTTPError
  		if response.status_code == 200:
@@ -359,7 +356,7 @@ class client(object):
 				dot.filterDict(dict, ['list', 'of', '.*keywords'])
 
 			Description:
-				This function discends into the Multi-level
+				This function descends into the Multi-level
 			dictionary and returns a list of [filtered] key value pairs
 
 			Returns:
@@ -392,8 +389,16 @@ class client(object):
 		data = {}
 		xml_root = ET.fromstring(xml)
 		for child in xml_root:
+			print "Child: %s" % child
+			print "Child Tag: %s" % child.tag
+			print "Child Attribute: %s" % child.attrib
 			data[child.tag] = {}
 			for attribute in child.attrib:
 				data[child.tag][attribute] = child.attrib[attribute]
 		return data
-	
+		
+	def _dump(self, object):
+		for property, value in vars(object).iteritems():
+			print property, ": ", value
+		
+		
