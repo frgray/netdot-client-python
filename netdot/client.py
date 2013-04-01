@@ -31,6 +31,7 @@ SUCH DAMAGES.
 
 import os, sys, re
 import requests
+import xml.etree.ElementTree as ET
 
 __version__ = '0.03' ## Not always updated
 
@@ -111,7 +112,7 @@ class client(object):
  		if response.status_code == 200:
 			xmlmatch = re.search(r'\<opt.*', response.content)		
 			if xmlmatch:
-				return self._parseXML(response.content)
+				return response.content
 			else:
 				print response.content
 		if response.status_code == 403:
@@ -142,7 +143,7 @@ class client(object):
  		if response.status_code == 200:
 			xmlmatch = re.search(r'\<opt.*', response.content)		
 			if xmlmatch:
-				return self._parseXML(response.content)
+				return response.content
 			else:
 				print response.content
 		if response.status_code == 403:
@@ -172,7 +173,7 @@ class client(object):
  		if response.status_code == 200:
 			xmlmatch = re.search(r'\<opt.*', response.content)		
 			if xmlmatch:
-				return self._parseXML(response.content)
+				return response.content
 			else:
 				print response.content
 		if response.status_code == 403:
@@ -193,7 +194,22 @@ class client(object):
 				Returns:
 					Multi-level dictionary on success.
 		"""
-		return self.get("/host?ipid=" + id)
+		xml = self.get("/host?ipid=" + id)
+		xml_root = ET.fromstring(xml)
+		host = dict()
+		ipblock = dict()
+		rr = dict()
+
+		for child in xml_root:
+			if child.tag == 'Ipblock':
+				ipblock = child.attrib
+			if child.tag == 'RR':
+				rr = child.attrib
+				
+		host[ipblock['id']] = dict()
+		host[ipblock['id']]['RR'] = rr
+		host[ipblock['id']]['Ipblock'] = ipblock
+		return host
 
 	def getHostByRRID(self, id):
 		"""getHostByRRID():
@@ -204,7 +220,22 @@ class client(object):
 				Returns:
 					Multi-level dictionary on success.
 		"""
-		return self.get("/host?rrid=" + id)
+		xml = self.get("/host?rrid=" + id)
+		xml_root = ET.fromstring(xml)
+		host = dict()
+		ipblock = dict()
+		rr = dict()
+
+		for child in xml_root:
+			if child.tag == 'Ipblock':
+				ipblock = child.attrib
+			if child.tag == 'RR':
+				rr = child.attrib
+				
+		host[rr['id']] = dict()
+		host[rr['id']]['RR'] = rr
+		host[rr['id']]['Ipblock'] = ipblock
+		return host
 
 	def getHostByName(self, name):
 		"""getHostByName():
@@ -218,7 +249,22 @@ class client(object):
 				Returns:
 					Multi-level dictionary on success.
 		"""
-		return self.get("/host?name=" + name)
+		xml = self.get("/host?name=" + name)
+		xml_root = ET.fromstring(xml)
+		host = dict()
+		ipblock = dict()
+		rr = dict()
+
+		for child in xml_root:
+			if child.tag == 'Ipblock':
+				ipblock = child.attrib
+			if child.tag == 'RR':
+				rr = child.attrib
+				
+		host[rr['name']] = dict()
+		host[rr['name']]['RR'] = rr
+		host[rr['name']]['Ipblock'] = ipblock
+		return host		
 		
 	def getIPBlock(self, ipblock):
 		"""getIPBlock():
@@ -306,7 +352,33 @@ class client(object):
 				Returns:
 					Multi-level dictionary on success.
 		"""
-		return self.get("/person?username=" + user)
+		xml = self.get("/person?username=" + user)
+		xml_root = ET.fromstring(xml)
+		person = dict()
+		
+		for child in xml_root:
+			person[user] = child.attrib
+		return person
+
+	def getPersonById(self, id):
+		"""getPersonByid():
+				Usage:
+					response = netdot.client.getPersonById("user_id")
+
+				Description:
+					This function returns a NetDot-XML object
+				for the requested Username
+				
+				Returns:
+					Multi-level dictionary on success.
+		"""
+		xml = self.get("/person?id=" + id)
+		xml_root = ET.fromstring(xml)
+		person = dict()
+		
+		for child in xml_root:
+			person[id] = child.attrib
+		return person
 
 	def getObjectByID(self, object, id):
 		"""getObjectByID():
@@ -332,9 +404,30 @@ class client(object):
 				for the requested Contact
 
 				Returns:
-					Multi-level dictionary on success.
+					Single-level dictionary on success.
 		"""
-		return self.get("/contact?person=" + id)
+		xml = self.get("/contact?person=" + id)
+		xml_root = ET.fromstring(xml)
+		person = dict()
+		
+		for child in xml_root:
+			person[id] = child.attrib
+		return person
+
+	def getContactByUsername(self, user):
+		"""getContactByUsername():
+				Usage:
+					response = netdot.client.getContactByUsername("foo")
+					
+				Description:
+					This function returns a NetDot-XML object
+				for the requested Contact
+				
+				Returns:
+					Single-level dictionary on success.
+		"""
+		person = self.getPersonByUsername(user)
+		return self.getContactByPersonID(person['id'])		
 
 	def getGrouprightByConlistID(self, id):
 		"""getGrouprightByConlistID():
@@ -375,28 +468,7 @@ class client(object):
 					else:
 						data[top_k][mid_k][bot_k] = bot_v
 		return data
-			
-	def _parseXML(self, xml):
-		"""_parseXML():
-			Description: 
-					This is a VERY simple parser specifically built to 
-				parse the NetDot-XML Objects
-				
-			Returns: 
-				Multi-level dictionary.
-		"""
-		import xml.etree.ElementTree as ET
-		data = {}
-		xml_root = ET.fromstring(xml)
-		for child in xml_root:
-			print "Child: %s" % child
-			print "Child Tag: %s" % child.tag
-			print "Child Attribute: %s" % child.attrib
-			data[child.tag] = {}
-			for attribute in child.attrib:
-				data[child.tag][attribute] = child.attrib[attribute]
-		return data
-		
+
 	def _dump(self, object):
 		for property, value in vars(object).iteritems():
 			print property, ": ", value
