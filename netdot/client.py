@@ -452,16 +452,15 @@ class client(object):
 		return self.delete("/host?rrid=" + rrid)
 		
 	def filterDict(self, dict, kword):
-		"""filterDict()
-			Usage:
-				dot.filterDict(dict, ['list', 'of', '.*keywords'])
+		"""
+		This function descends into the Multi-level
+		dictionary and returns a list of [filtered] key value pairs
+		
+		Usage:
+			dot.filterDict(dict, ['list', 'of', '.*keywords'])
 
-			Description:
-				This function descends into the Multi-level
-			dictionary and returns a list of [filtered] key value pairs
-
-			Returns:
-				Multi-level dictionary on success
+		Returns:
+			Multi-level dictionary on success
 		"""
 		data = {}
 		for top_k, top_v in dict.items():
