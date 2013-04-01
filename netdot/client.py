@@ -32,6 +32,7 @@ SUCH DAMAGES.
 import os, sys, re
 import requests
 import xml.etree.ElementTree as ET
+from netdot import Dumper
 
 __version__ = '0.03' ## Not always updated
 
@@ -89,7 +90,7 @@ class client(object):
 			self.auth_cookies = response.request.cookies
 		else:
 			raise AttributeError('Invalid Credentials')
-
+			
 	def get(self, url):
 		"""get():
 				Usage:
@@ -119,8 +120,7 @@ class client(object):
 			print 'HTTP/1.1 - GET %s - ACCESS DENIED' % url
 		else: 
 			raise Exception('Non-200 Return Code: %s, Content: %s' % (response.status_code, response.content))
-
-			
+		
 	def post(self, url, data):
 		"""post():
 				Usage:
@@ -150,7 +150,7 @@ class client(object):
 			print 'HTTP/1.1 - POST %s - ACCESS DENIED' % url
 		else: 
 			raise Exception('Non-200 Return Code: %s, Content: %s' % (response.status_code, response.content))
-
+		
 	def delete(self, url):
 		"""delete():
 				Usage: 
@@ -180,7 +180,6 @@ class client(object):
 			print 'HTTP/1.1 - DELETE %s - ACCESS DENIED' % url
 		else: 
 			raise Exception('Non-200 Return Code: %s, Content: %s' % (response.status_code, response.content))
-
 				
 	def getHostByIPID(self, id):
 		"""getHostByIPID():
@@ -194,22 +193,7 @@ class client(object):
 				Returns:
 					Multi-level dictionary on success.
 		"""
-		xml = self.get("/host?ipid=" + id)
-		xml_root = ET.fromstring(xml)
-		host = dict()
-		ipblock = dict()
-		rr = dict()
-
-		for child in xml_root:
-			if child.tag == 'Ipblock':
-				ipblock = child.attrib
-			if child.tag == 'RR':
-				rr = child.attrib
-				
-		host[ipblock['id']] = dict()
-		host[ipblock['id']]['RR'] = rr
-		host[ipblock['id']]['Ipblock'] = ipblock
-		return host
+		return self._parse(id, self.get("/host?ipid=" + id))
 
 	def getHostByRRID(self, id):
 		"""getHostByRRID():
@@ -220,22 +204,7 @@ class client(object):
 				Returns:
 					Multi-level dictionary on success.
 		"""
-		xml = self.get("/host?rrid=" + id)
-		xml_root = ET.fromstring(xml)
-		host = dict()
-		ipblock = dict()
-		rr = dict()
-
-		for child in xml_root:
-			if child.tag == 'Ipblock':
-				ipblock = child.attrib
-			if child.tag == 'RR':
-				rr = child.attrib
-				
-		host[rr['id']] = dict()
-		host[rr['id']]['RR'] = rr
-		host[rr['id']]['Ipblock'] = ipblock
-		return host
+		return self._parse(id, self.get("/host?rrid=" + id))
 
 	def getHostByName(self, name):
 		"""getHostByName():
@@ -249,22 +218,7 @@ class client(object):
 				Returns:
 					Multi-level dictionary on success.
 		"""
-		xml = self.get("/host?name=" + name)
-		xml_root = ET.fromstring(xml)
-		host = dict()
-		ipblock = dict()
-		rr = dict()
-
-		for child in xml_root:
-			if child.tag == 'Ipblock':
-				ipblock = child.attrib
-			if child.tag == 'RR':
-				rr = child.attrib
-				
-		host[rr['name']] = dict()
-		host[rr['name']]['RR'] = rr
-		host[rr['name']]['Ipblock'] = ipblock
-		return host		
+		return self._parse(name, self.get("/host?name=" + name))
 		
 	def getIPBlock(self, ipblock):
 		"""getIPBlock():
@@ -279,53 +233,7 @@ class client(object):
 					Array of NetDot-XML objects on success
 		"""		
 		return self.get("/host?subnet=" + ipblock)
-	
-	def renameHost(self, old, new):
-		"""renameHost():
-				Usage: 
-					netdot.client.renameHost('old-name','new-name')
 				
-				Description: 
-						This function will rename a host record.  Previously, 
-					the user had to query know the RRID of the record, then 
-					post the updated name to the RRID record.  This function
-					automates the RRID search and constructs the post request 
-					for you.
-		"""
-		host = self.getHostByName(old)
-		rrid = host['RR']['id']
-		data = {}
-		data['name'] = new
-		return self.post("/host?rrid=" + rrid, data)
-
-	def createHost(self, data):
-		"""createHost():
-				Usage: 
-					response = netdot.client.createHost({'name':'my-server',
-					'subnet':'192.168.1.0/24',
-					'ethernet':'XX:XX:XX:XX:XX:XX',
-					'info':'My Server'})
-				Description: 
-					This function takes a dict and creates a new 
-				record in the subnet '192.168.1.0/24' with an ethernet 
-				address of 'XX:XX:XX:XX:XX:XX' and a comment of 'My Server'.  
-
-				Returns: 
-					Created record as a multi-level dictionary.
-		"""		
-		return self.post("/host", data)
-		
-	def deleteHostByRRID(self, rrid):
-		"""deleteHostByRRID():
-				Usage:
-					response = netdot.client.deleteHostByRRD("1111")
-					 
-				Description: 
-					This function deletes a hostname record
-				for the requested RR ID. This also frees the IP.
-		"""	
-		return self.delete("/host?rrid=" + rrid)
-		
 	def getHostByAddress(self, address):
 		"""getHostByAddress():
 				Usage:
@@ -338,7 +246,7 @@ class client(object):
 				Returns:
 					Multi-level dictionary on success.
 		"""
-		return self.get("/host?address=" + address)
+		return self._parse(address, self.get("/host?address=" + address))
 
 	def getPersonByUsername(self, user):
 		"""getPersonByUsername():
@@ -348,17 +256,11 @@ class client(object):
 				Description:
 					This function returns a NetDot-XML object
 				for the requested Username
-		
+				
 				Returns:
 					Multi-level dictionary on success.
 		"""
-		xml = self.get("/person?username=" + user)
-		xml_root = ET.fromstring(xml)
-		person = dict()
-		
-		for child in xml_root:
-			person[user] = child.attrib
-		return person
+		return self._parse(user, self.get("/person?username=" + user))
 
 	def getPersonById(self, id):
 		"""getPersonByid():
@@ -443,6 +345,62 @@ class client(object):
 		"""
 		return self.get("/groupright?contactlist=" + id)
 	
+	def addCnameToARecord(self, name, cname):
+		"""addCnameToARecord():
+		"""
+		data = { 'cname': cname }
+		host = self.getHostByName(name)
+		for key in host[name]['RR'].iterkeys():
+			for attr, attr_val in host[name]['RR'][key].iteritems():
+				if attr == 'name' and attr_val == name:
+#					return self.post("/host?rrid=" + host[name]['RR'][key]['id'], data)
+		
+	def renameHost(self, old, new):
+		"""renameHost():
+				Usage: 
+					netdot.client.renameHost('old-name','new-name')
+				
+				Description: 
+						This function will rename a host record.  Previously, 
+					the user had to query know the RRID of the record, then 
+					post the updated name to the RRID record.  This function
+					automates the RRID search and constructs the post request 
+					for you.
+		"""
+		host = self.getHostByName(old)
+		rrid = host['RR']['id']
+		data = {}
+		data['name'] = new
+		return self.post("/host?rrid=" + rrid, data)
+
+	def createHost(self, data):
+		"""createHost():
+				Usage: 
+					response = netdot.client.createHost({'name':'my-server',
+					'subnet':'192.168.1.0/24',
+					'ethernet':'XX:XX:XX:XX:XX:XX',
+					'info':'My Server'})
+				Description: 
+					This function takes a dict and creates a new 
+				record in the subnet '192.168.1.0/24' with an ethernet 
+				address of 'XX:XX:XX:XX:XX:XX' and a comment of 'My Server'.  
+
+				Returns: 
+					Created record as a multi-level dictionary.
+		"""
+		return self.post("/host", data)	
+
+	def deleteHostByRRID(self, rrid):
+		"""deleteHostByRRID():
+				Usage:
+					response = netdot.client.deleteHostByRRD("1111")
+					 
+				Description: 
+					This function deletes a hostname record
+				for the requested RR ID. This also frees the IP.
+		"""
+		return self.delete("/host?rrid=" + rrid)
+		
 	def filterDict(self, dict, kword):
 		"""filterDict()
 			Usage:
@@ -469,6 +427,17 @@ class client(object):
 						data[top_k][mid_k][bot_k] = bot_v
 		return data
 
+	def _parse(self, request_type, xml):
+		xml_root = ET.fromstring(xml)
+		data = dict()
+		data[request_type] = dict()
+
+		for child in xml_root:
+			data[request_type][child.tag] = dict()
+		for child in xml_root:
+			data[request_type][child.tag][child.attrib['id']] = child.attrib
+		return data	
+		
 	def _dump(self, object):
 		for property, value in vars(object).iteritems():
 			print property, ": ", value
