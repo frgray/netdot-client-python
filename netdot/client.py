@@ -32,7 +32,6 @@ SUCH DAMAGES.
 import os, sys, re
 import requests
 import xml.etree.ElementTree as ET
-from netdot import Dumper
 
 __version__ = '0.03' ## Not always updated
 
