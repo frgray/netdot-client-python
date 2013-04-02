@@ -46,12 +46,12 @@ class Connect(object):
     
       Usage:
         import netdot
-        dot = netdot.client(username,
-                            password,
-                            "https://netdot.localdomain/netdot",
-                            [debug])
+        dot = netdot.Client.Connect(username,
+                                    password,
+                                    "https://netdot.localdomain/netdot",
+                                    [debug])
             
-      Returns: NetDot.client object.
+      Returns: NetDot.Client object.
       """
       if debug == 1:
         self.debug = True
@@ -103,7 +103,7 @@ class Connect(object):
         url -- Url to append to the base url
       
       Usage: 
-        response = netdot.client.get("/url")
+        response = netdot.Client.get("/url")
       
       Returns: 
         Result as a multi-level dictionary on sucsess. 
@@ -139,7 +139,7 @@ class Connect(object):
         data -- dict of key/value pairs that the form requires
     
       Usage:
-        response = netdot.client.post("/url", {form-data})
+        response = netdot.Client.post("/url", {form-data})
     
       Returns: 
         Result as a multi-level dictionary on success
@@ -174,7 +174,7 @@ class Connect(object):
         url -- Url to append to the base url
     
       Usage: 
-        response = netdot.client.delete("/url")
+        response = netdot.Client.delete("/url")
 
       Returns: 
         Result as an empty multi-level dictionary
@@ -207,7 +207,7 @@ class Connect(object):
         id -- NetDot IP ID
     
       Usage:
-        response = netdot.client.getHostByIPID("1111")
+        response = netdot.Client.get_host_by_ipid("1111")
     
       Returns:
         Multi-level dictionary on success.
@@ -223,7 +223,7 @@ class Connect(object):
         id -- NetDot RR ID
     
       Usage:
-        response = netdot.client.getHostByRRID("1111")
+        response = netdot.Client.get_host_by_rrid("1111")
     
       Returns:
         Multi-level dictionary on success.
@@ -239,7 +239,7 @@ class Connect(object):
         name -- DNS shortname
     
       Usage:
-        response = netdot.client.getHostByName("foo")
+        response = netdot.Client.get_host_by_name("foo")
     
       Returns:
         Multi-level dictionary on success.
@@ -255,7 +255,7 @@ class Connect(object):
         ipblock - IpBlock in CIDR notation 
     
       Usage: 
-        response = netdot.client.getIPBlock('192.168.1.0/24')
+        response = netdot.Client.get_ipblock('192.168.1.0/24')
       
       Returns:
         Array of NetDot-XML objects on success
@@ -271,7 +271,7 @@ class Connect(object):
         address -- IP Address in "dotted-quad" syntax
 
       Usage:
-        response = netdot.client.getHostByIPID("192.168.0.1")
+        response = netdot.Client.get_host_address("192.168.0.1")
 
       Returns:
         Multi-level dictionary on success.
@@ -286,7 +286,7 @@ class Connect(object):
         user -- Desired username
 
       Usage:
-        response = netdot.client.getPersonByUsername("user")
+        response = netdot.Client.get_person_by_username("user")
       
       Returns:
         Multi-level dictionary on success.
@@ -301,7 +301,7 @@ class Connect(object):
         id -- Desired User ID
 
       Usage:
-        response = netdot.client.getPersonById("id")
+        response = netdot.Client.get_person_by_id("id")
       
       Returns:
         Multi-level dictionary on success.
@@ -323,7 +323,7 @@ class Connect(object):
         id  --  Object ID
     
       Usage:
-        response = netdot.client.getObjectByID("object", "id")
+        response = netdot.Client.get_object_by_id("object", "id")
     
       Returns:
         Multi-level dictionary on success
@@ -338,7 +338,7 @@ class Connect(object):
         id  --  person id
     
       Usage:
-        response = netdot.client.getContactByPersonID('id')
+        response = netdot.Client.get_contact_by_person_id('id')
     
       Returns:
         Single-level dictionary on success
@@ -359,7 +359,7 @@ class Connect(object):
         user  --  NetDot Username
     
       Usage:
-        response = netdot.client.getContactByUsername("mary")
+        response = netdot.Client.get_contact_by_username("mary")
     
       Returns:
         Multi-level dictionary on success
@@ -376,7 +376,7 @@ class Connect(object):
         id  --  NetDot Contact List ID
     
       Usage:
-        response = netdot.client.getGrouprightsByConlistID("id")
+        response = netdot.Client.get_grouprights_by_conlist_id("id")
     
       Returns:
         Multi-level dictionary on success
@@ -393,7 +393,8 @@ class Connect(object):
         cname -- Desired CNAME
       
       Usage: 
-        response = dot.addCnameToARecord('foo.example.com', 'bar.example.com')
+        response = netdot.Client.add_cname_to_record('foo.example.com', 
+                                                     'bar.example.com')
       """
       data = { 'cname': cname }
       host = self.getHostByName(name)
@@ -415,7 +416,7 @@ class Connect(object):
         new -- New DNS shortname
 
       Usage: 
-        netdot.client.renameHost('old-name','new-name')
+        netdot.Client.rename_host('old-name','new-name')
       """
       host = self.getHostByName(old)
       rrid = host['RR']['id']
@@ -435,7 +436,7 @@ class Connect(object):
               subnet: 'CIDR notation'
 
       Usage: 
-        response = netdot.client.createHost({'name':'my-server',
+        response = netdot.Client.create_host({'name':'my-server',
                                             'subnet':'192.168.1.0/24',
                                             'ethernet':'XX:XX:XX:XX:XX:XX',
                                             'info':'My Server'})
@@ -454,7 +455,7 @@ class Connect(object):
         rrid -- NetDot Resource Record ID
     
       Usage:
-        response = netdot.client.deleteHostByRRD("1111")
+        response = netdot.Client.delete_host_by_rrid("1111")
     
       Returns: 
       """

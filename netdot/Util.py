@@ -40,7 +40,7 @@ def filter_dict(dict, kword):
     dictionary and returns a list of [filtered] key value pairs
     
     Usage:
-      dot.filterDict(dict, ['list', 'of', '.*keywords'])
+      Util.filterDict(dict, ['list', 'of', '.*keywords'])
       
     Returns:
       Multi-level dictionary on success
@@ -63,7 +63,10 @@ def parse_xml(xml):
     """
     This is a VERY simple parser specifically built to 
     parse the NetDot-XML Objects
-        
+    
+    Usage: 
+      dict = Util.parse_xml(xml)
+    
     Returns: 
       Multi-level dictionary.
     """
@@ -78,6 +81,7 @@ def parse_xml(xml):
     return data
 
 def dump(object):
+    """Prints the contents of a dict"""
     for property, value in vars(object).iteritems():
       print property, ": ", value  
   
