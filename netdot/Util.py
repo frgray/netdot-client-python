@@ -34,57 +34,50 @@ import sys
 import re
 import xml.etree.ElementTree as ET
 
-class Util(object):
-  def __init__(self, debug = 0):
-    	"""Class constructor"""
-    	if debug == 1:
-      	self.debug = True
-      	print "DEBUG MODE: ON"
-  
-	def filter_dict(self, dict, kword):
-			"""
-    	This function descends into the Multi-level
-    	dictionary and returns a list of [filtered] key value pairs
+def filter_dict(dict, kword):
+    """
+    This function descends into the Multi-level
+    dictionary and returns a list of [filtered] key value pairs
     
-    	Usage:
-      	dot.filterDict(dict, ['list', 'of', '.*keywords'])
-
-    	Returns:
-      	Multi-level dictionary on success
-   		"""
-    	data = {}
-    	for top_k, top_v in dict.items():
-      	data[top_k] = {}
-      	for mid_k, mid_v in top_v.items():
-        	data[top_k][mid_k] = {}
-        	for bot_k, bot_v in mid_v.items():
-          	if kword:
-            	re_comb = "(" + ")|(".join(kword) + ")"
-            	if re.match(re_comb, bot_k):
-              	data[top_k][mid_k][bot_k] = bot_v
-          	else:
-            	data[top_k][mid_k][bot_k] = bot_v
-    	return data
-	
-	def parse_xml(self, xml):
-			"""
-			This is a VERY simple parser specifically built to 
-			parse the NetDot-XML Objects
-				
-			Returns: 
-				Multi-level dictionary.
-			"""
-			data = {}
-			xml_root = ET.fromstring(xml)
-			for child in xml_root:
-				if child.tag in data:
-					data[child.tag][child.attrib["id"]] = child.attrib
-				else:
-					data[child.tag] ={}
-					data[child.tag][child.attrib["id"]] = child.attrib
-			return data
+    Usage:
+      dot.filterDict(dict, ['list', 'of', '.*keywords'])
+      
+    Returns:
+      Multi-level dictionary on success
+    """
+    data = {}
+    for top_k, top_v in dict.items():
+      data[top_k] = {}
+      for mid_k, mid_v in top_v.items():
+        data[top_k][mid_k] = {}
+        for bot_k, bot_v in mid_v.items():
+          if kword:
+            re_comb = "(" + ")|(".join(kword) + ")"
+            if re.match(re_comb, bot_k):
+              data[top_k][mid_k][bot_k] = bot_v
+            else:
+              data[top_k][mid_k][bot_k] = bot_v
+    return data
   
-  def dump(self, object):
-    	for property, value in vars(object).iteritems():
-      	print property, ": ", value  
-	
+def parse_xml(xml):
+    """
+    This is a VERY simple parser specifically built to 
+    parse the NetDot-XML Objects
+        
+    Returns: 
+      Multi-level dictionary.
+    """
+    data = {}
+    xml_root = ET.fromstring(xml)
+    for child in xml_root:
+      if child.tag in data:
+        data[child.tag][child.attrib["id"]] = child.attrib
+      else:
+        data[child.tag] ={}
+        data[child.tag][child.attrib["id"]] = child.attrib
+    return data
+
+def dump(object):
+    for property, value in vars(object).iteritems():
+      print property, ": ", value  
+  
