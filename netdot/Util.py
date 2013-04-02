@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-example.py
+Util.py
 
 Created by Francisco Gray <frgray@uoregon.edu> on 2012-11-01.
 Copyright (c) 2012 University of Oregon. All rights reserved.
@@ -29,36 +29,55 @@ SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGES.
 """
 
-import sys
 import os
-import netdot
+import sys
+import re
+import xml.etree.ElementTree as ET
 
-uname = 'my_user'
-pword = 'my_pass'
-server = "https://netdot.localdomain/netdot"
-debug = 1
+def filter_dict(dict, kword):
+    """
+    This function descends into the Multi-level
+    dictionary and returns a list of [filtered] key value pairs
+    
+    Usage:
+      dot.filterDict(dict, ['list', 'of', '.*keywords'])
+      
+    Returns:
+      Multi-level dictionary on success
+    """
+    data = {}
+    for top_k, top_v in dict.items():
+      data[top_k] = {}
+      for mid_k, mid_v in top_v.items():
+        data[top_k][mid_k] = {}
+        for bot_k, bot_v in mid_v.items():
+          if kword:
+            re_comb = "(" + ")|(".join(kword) + ")"
+            if re.match(re_comb, bot_k):
+              data[top_k][mid_k][bot_k] = bot_v
+            else:
+              data[top_k][mid_k][bot_k] = bot_v
+    return data
+  
+def parse_xml(xml):
+    """
+    This is a VERY simple parser specifically built to 
+    parse the NetDot-XML Objects
+        
+    Returns: 
+      Multi-level dictionary.
+    """
+    data = {}
+    xml_root = ET.fromstring(xml)
+    for child in xml_root:
+      if child.tag in data:
+        data[child.tag][child.attrib["id"]] = child.attrib
+      else:
+        data[child.tag] ={}
+        data[child.tag][child.attrib["id"]] = child.attrib
+    return data
 
-dot = netdot.Client(uname, pword, server, [debug])
-
-# Direct GET/POST/DELETE calls
-r = dot.get('/host?name=my-server-name')
-r = dot.post('/host', host)
-
-name = dot.get_host_by_name('foo')
-cname = dot.add_cname_record('foo','bar.foo.example.com')
-ipid = dot.get_host_by_ipid('11111')
-rrid = dot.get_host_by_rrid('11111')
-
-ipblock =  dot.get_ipblock("184.171.96.0/24")
-user = dot.get_person_by_username('mary')
-user_id = dot.get_person_by_id('111')
-
-host = {
-	'name':'my-server', 
-	'subnet':'192.168.1.0/24', 
-	'ethernet':'XX:XX:XX:XX:XX:XX',
-	'info':'My Server'
-}
-r = dot.create_host(host)
-
-print r
+def dump(object):
+    for property, value in vars(object).iteritems():
+      print property, ": ", value  
+  
