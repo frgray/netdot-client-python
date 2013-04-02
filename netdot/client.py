@@ -379,6 +379,7 @@ class client(object):
 						data[top_k][mid_k][bot_k] = bot_v
 		return data
 			
+	
 	def _parseXML(self, xml):
 		"""_parseXML():
 			Description: 
@@ -392,8 +393,9 @@ class client(object):
 		data = {}
 		xml_root = ET.fromstring(xml)
 		for child in xml_root:
-			data[child.tag] = {}
-			for attribute in child.attrib:
-				data[child.tag][attribute] = child.attrib[attribute]
+			if child.tag in data:
+				data[child.tag][child.attrib["id"]] = child.attrib
+			else:
+				data[child.tag] ={}
+				data[child.tag][child.attrib["id"]] = child.attrib
 		return data
-	
