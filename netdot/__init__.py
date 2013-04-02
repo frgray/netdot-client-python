@@ -29,6 +29,7 @@ SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGES.
 """
 
-__version__ = '0.01' ## Not always updated
+__version__ = '0.03' ## Not always updated
 
-from netdot.client import client
+import netdot.Util
+import netdot.Client
