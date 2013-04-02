@@ -38,14 +38,20 @@ pword = 'my_pass'
 server = "https://netdot.localdomain/netdot"
 debug = 1
 
-dot = netdot.client(uname, pword, server, [debug])
+dot = netdot.Client(uname, pword, server, [debug])
 
-#r = dot.get('/host?name=my-server-name')
-#r = dot.post('/host', host)
+# Direct GET/POST/DELETE calls
+r = dot.get('/host?name=my-server-name')
+r = dot.post('/host', host)
 
-r = dot.getHostByName('my-server')
-#r = dot.getHostByIPID("111111")
-#r = dot.getHostByRRID("111111")
+name = dot.get_host_by_name('foo')
+cname = dot.add_cname_record('foo','bar.foo.example.com')
+ipid = dot.get_host_by_ipid('11111')
+rrid = dot.get_host_by_rrid('11111')
+
+ipblock =  dot.get_ipblock("184.171.96.0/24")
+user = dot.get_person_by_username('mary')
+user_id = dot.get_person_by_id('111')
 
 host = {
 	'name':'my-server', 
@@ -53,9 +59,6 @@ host = {
 	'ethernet':'XX:XX:XX:XX:XX:XX',
 	'info':'My Server'
 }
-#r = dot.createHost(host)
-#r = dot.getHostByName('my-server')
-#r = dot.getHostByRRID('1111')
-#r = dot.deleteHostByRRID('11111')
+r = dot.create_host(host)
 
 print r
