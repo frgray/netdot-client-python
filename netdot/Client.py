@@ -53,27 +53,24 @@ class Connect(object):
             
       Returns: NetDot.client object.
       """
-      if debug == 1:
-        self.debug = True
+
+      self.debug = bool(debug)
+      if self.debug:
         print "DEBUG MODE: ON"
-      if username and password and server:
-        self.base_url = server + '/rest'
-        self.login_url = server + '/NetdotLogin'
-        self.timeout = 10
-        self.retries = 3
-        self.version = __version__
-        self.headers = { 'User_Agent':'Netdot::Client::REST/self.version',
-                         'Accept':'text/xml; version=1.0'}
-        params = {'destination':'index.html',
-                  'credential_0':username, 
-                  'credential_1':password, 
-                  'permanent_session':1}
+      self.http = requests.session()
+      self.http.verify=False
+
+      self.base_url = server + '/rest'
+      self.login_url = server + '/NetdotLogin'
+      self.timeout = 10
+      self.retries = 3
+      self.version = __version__
+      self.http.headers.update({ 'User_Agent':'Netdot::Client::REST/self.version',
+                         'Accept':'text/xml; version=1.0'})
       # Call the _login() function    
-        self._login(params)
-      else:
-        raise AttributeError('Username, Password and Server are REQUIRED')
+      self._login(username, password)
   
-  def _login(self,params):
+  def _login(self, username, password):
       """
       Internal Function. Logs into the NetDot API with provided credentials, 
       stores the Apache generated cookies into the self object to be 
@@ -85,11 +82,12 @@ class Connect(object):
                 'credential_1':password, 
                 'permanent_session':1
       """
-      response = requests.post(self.login_url, data=params, 
-                              headers=self.headers)
-      if response.status_code == 200:
-        self.auth_cookies = response.request.cookies
-      else:
+      params = {'destination':'index.html',
+                  'credential_0':username, 
+                  'credential_1':password, 
+                  'permanent_session':1}
+      response = self.http.post(self.login_url, data=params)
+      if response.status_code != 200:
         raise AttributeError('Invalid Credentials')
   
   def get(self, url):
@@ -108,24 +106,16 @@ class Connect(object):
       Returns: 
         Result as a multi-level dictionary on sucsess. 
       """
-      response = requests.get(self.base_url + url, 
-                              cookies=self.auth_cookies, 
-                              headers=self.headers)
-      if hasattr(self, 'debug'):
+      response = self.http.get(self.base_url + url)
+      if self.debug:
         Util.dump(response)
-      if response.error:
-        raise HTTPError
-      if response.status_code == 200:
-        xmlmatch = re.search(r'\<opt.*', response.content)    
-        if xmlmatch:
-          return response.content
-        else:
-          print response.content
-      if response.status_code == 403:
-        print 'HTTP/1.1 - GET %s - ACCESS DENIED' % url
-      else: 
-        raise Exception('Non-200 Return Code: %s, Content: %s' % 
-                        (response.status_code, response.content))
+      response.raise_for_status()
+
+      xmlmatch = re.search(r'\<opt.*', response.content)    
+      if xmlmatch:
+        return response.content
+      else:
+        print response.content
   
   def post(self, url, data):
       """
@@ -144,24 +134,16 @@ class Connect(object):
       Returns: 
         Result as a multi-level dictionary on success
       """
-      response = requests.post(self.base_url + url, 
-                              cookies=self.auth_cookies, 
-                              data=data, headers=self.headers)
-      if hasattr(client, 'debug'):
+      response = self.http.post(self.base_url + url, data=data)
+      if self.debug:
         self._dump(response)
-      if response.error:
-        raise HTTPError
-      if response.status_code == 200:
-        xmlmatch = re.search(r'\<opt.*', response.content)    
-        if xmlmatch:
-          return response.content
-        else:
-          print response.content
-      if response.status_code == 403:
-        print 'HTTP/1.1 - POST %s - ACCESS DENIED' % url
-      else: 
-        raise Exception('Non-200 Return Code: %s, Content: %s' % 
-                        (response.status_code, response.content))
+      response.raise_for_status()
+
+      xmlmatch = re.search(r'\<opt.*', response.content)    
+      if xmlmatch:
+        return response.content
+      else:
+        print response.content
   
   def delete(self, url):
       """
@@ -179,24 +161,15 @@ class Connect(object):
       Returns: 
         Result as an empty multi-level dictionary
       """
-      response = requests.delete(self.base_url + url, 
-                                cookies=self.auth_cookies, 
-                                headers=self.headers)
-      if hasattr(client, 'debug'):
+      response = requests.delete(self.base_url + url)
+      if self.debug:
         self._dump(response)
-      if response.error:
-        raise HTTPError
-      if response.status_code == 200:
-        xmlmatch = re.search(r'\<opt.*', response.content)    
-        if xmlmatch:
-          return response.content
-        else:
-          print response.content
-      if response.status_code == 403:
-        print 'HTTP/1.1 - DELETE %s - ACCESS DENIED' % url
-      else: 
-        raise Exception('Non-200 Return Code: %s, Content: %s' % 
-                      (response.status_code, response.content))
+      response.raise_for_status()
+      xmlmatch = re.search(r'\<opt.*', response.content)    
+      if xmlmatch:
+        return response.content
+      else:
+        print response.content
   
   def get_host_by_ipid(self, id):
       """
