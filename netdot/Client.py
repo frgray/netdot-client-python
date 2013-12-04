@@ -111,11 +111,8 @@ class Connect(object):
         Util.dump(response)
       response.raise_for_status()
 
-      xmlmatch = re.search(r'\<opt.*', response.content)    
-      if xmlmatch:
-        return response.content
-      else:
-        print response.content
+      Util.validate_xml(response.content)
+      return response.content
   
   def post(self, url, data):
       """
@@ -139,11 +136,8 @@ class Connect(object):
         self._dump(response)
       response.raise_for_status()
 
-      xmlmatch = re.search(r'\<opt.*', response.content)    
-      if xmlmatch:
-        return response.content
-      else:
-        print response.content
+      Util.validate_xml(response.content)
+      return response.content
   
   def delete(self, url):
       """
@@ -165,11 +159,8 @@ class Connect(object):
       if self.debug:
         self._dump(response)
       response.raise_for_status()
-      xmlmatch = re.search(r'\<opt.*', response.content)    
-      if xmlmatch:
-        return response.content
-      else:
-        print response.content
+      Util.validate_xml(response.content)
+      return response.content
   
   def get_host_by_ipid(self, id):
       """

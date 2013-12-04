@@ -34,6 +34,9 @@ import sys
 import re
 import xml.etree.ElementTree as ET
 
+class NetdotError(Exception):
+    pass
+
 def filter_dict(dict, kword):
     """
     This function descends into the Multi-level
@@ -58,6 +61,10 @@ def filter_dict(dict, kword):
             else:
               data[top_k][mid_k][bot_k] = bot_v
     return data
+
+def validate_xml(content):
+    if '<opt' not in content:
+        raise NetdotError(content)
   
 def parse_xml(xml):
     """
