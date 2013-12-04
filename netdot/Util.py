@@ -74,6 +74,7 @@ def parse_xml(xml):
     Returns: 
       Multi-level dictionary.
     """
+    validate_xml(xml)
     data = {}
     xml_root = ET.fromstring(xml)
     for child in xml_root:

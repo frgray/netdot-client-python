@@ -110,9 +110,15 @@ class Connect(object):
       if self.debug:
         Util.dump(response)
       response.raise_for_status()
-
-      Util.validate_xml(response.content)
       return response.content
+
+  def get_xml(self, url):
+      """
+      This function delegates to .get and parses the
+      response as xml
+      """
+
+      return Util.parse_xml(self.get(url))
   
   def post(self, url, data):
       """
@@ -176,7 +182,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success.
       """
-      return Util.parse_xml(self.get("/host?ipid=" + id))
+      return self.get_xml("/host?ipid=" + id)
   
   def get_host_by_rrid(self, id):
       """
@@ -192,7 +198,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success.
       """
-      return Util.parse_xml(self.get("/host?rrid=" + id))
+      return self.get_xml("/host?rrid=" + id)
   
   def get_host_by_name(self, name):
       """
@@ -208,7 +214,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success.
       """
-      return Util.parse_xml(self.get("/host?name=" + name))
+      return self.get_xml("/host?name=" + name)
   
   def get_ipblock(self, ipblock):
       """
@@ -224,7 +230,7 @@ class Connect(object):
       Returns:
         Array of NetDot-XML objects on success
       """   
-      return self.get("/host?subnet=" + ipblock)
+      return self.get_xml("/host?subnet=" + ipblock)
   
   def get_host_address(self, address):
       """
@@ -240,7 +246,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success.
       """
-      return Util.parse_xml(self.get("/host?address=" + address))
+      return self.get_xml("/host?address=" + address)
   
   def get_person_by_username(self, user):
       """
@@ -255,7 +261,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success.
       """
-      return Util.parse_xml(self.get("/person?username=" + user))
+      return self.get_xml("/person?username=" + user)
   
   def get_person_by_id(self, id):
       """
@@ -292,7 +298,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success
       """
-      return self.get("/" + object + "?id=" + id)
+      return self.get_xml("/" + object + "?id=" + id)
   
   def get_contact_by_person_id(self, id):
       """
@@ -345,7 +351,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success
       """
-      return self.get("/groupright?contactlist=" + id)
+      return self.get_xml("/groupright?contactlist=" + id)
   
   def add_cname_to_record(self, name, cname):
       """
