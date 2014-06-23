@@ -88,7 +88,7 @@ class Connect(object):
       response = requests.post(self.login_url, data=params, 
                               headers=self.headers)
       if response.status_code == 200:
-        self.auth_cookies = response.request.cookies
+        self.auth_cookies = response.history[0].cookies
       else:
         raise AttributeError('Invalid Credentials')
   
