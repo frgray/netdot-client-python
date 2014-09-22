@@ -38,7 +38,7 @@ pword = 'my_pass'
 server = "https://netdot.localdomain/netdot"
 debug = 1
 
-dot = netdot.Client(uname, pword, server, [debug])
+dot = netdot.Client.Connect(uname, pword, server, [debug])
 
 # Direct GET/POST/DELETE calls
 r = dot.get('/host?name=my-server-name')
