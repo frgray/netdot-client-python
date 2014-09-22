@@ -139,7 +139,7 @@ class Connect(object):
       """
       response = self.http.post(self.base_url + url, data=data)
       if self.debug:
-        self._dump(response)
+        Util.dump(response)
       response.raise_for_status()
 
       Util.validate_xml(response.content)
@@ -163,7 +163,7 @@ class Connect(object):
       """
       response = requests.delete(self.base_url + url)
       if self.debug:
-        self._dump(response)
+        Util.dump(response)
       response.raise_for_status()
       Util.validate_xml(response.content)
       return response.content
