@@ -46,10 +46,10 @@ class Connect(object):
     
       Usage:
         import netdot
-        dot = netdot.client(username,
-                            password,
-                            "https://netdot.localdomain/netdot",
-                            [debug])
+        dot = netdot.Client.connect(username,
+                                    password,
+                                    "https://netdot.localdomain/netdot",
+                                    debug)
             
       Returns: NetDot.client object.
       """
@@ -101,10 +101,10 @@ class Connect(object):
         url -- Url to append to the base url
       
       Usage: 
-        response = netdot.client.get("/url")
+        response = netdot.Client.get("/url")
       
       Returns: 
-        Result as a multi-level dictionary on sucsess. 
+        XML string output from Netdot
       """
       response = self.http.get(self.base_url + url)
       if self.debug:
@@ -114,10 +114,18 @@ class Connect(object):
 
   def get_xml(self, url):
       """
-      This function delegates to .get and parses the
-      response as xml
-      """
+      This function delegates to get() and parses the
+      response xml to return a dict
 
+      Arguments:
+        url -- Url to append to the base url
+      
+      Usage: 
+        dict = netdot.Client.get_xml("/url")
+      
+      Returns: 
+        Result as a multi-level dictionary on success.
+      """
       return Util.parse_xml(self.get(url))
   
   def post(self, url, data):
@@ -132,7 +140,7 @@ class Connect(object):
         data -- dict of key/value pairs that the form requires
     
       Usage:
-        response = netdot.client.post("/url", {form-data})
+        response = netdot.Client.post("/url", {form-data})
     
       Returns: 
         Result as a multi-level dictionary on success
@@ -156,28 +164,27 @@ class Connect(object):
         url -- Url to append to the base url
     
       Usage: 
-        response = netdot.client.delete("/url")
+        response = netdot.Client.delete("/url")
 
       Returns: 
         Result as an empty multi-level dictionary
       """
-      response = requests.delete(self.base_url + url)
+      response = self.http.delete(self.base_url + url)
       if self.debug:
         Util.dump(response)
       response.raise_for_status()
-      Util.validate_xml(response.content)
       return response.content
   
   def get_host_by_ipid(self, id):
       """
-      This function returns a NetDot-XML object 
-      for the requested IP ID.
+      Given an Ipblock ID, returns the Ipblock and associated 
+      resource records' data
     
       Arguments: 
-        id -- NetDot IP ID
+        id -- NetDot Ipblock ID
     
       Usage:
-        response = netdot.client.getHostByIPID("1111")
+        response = netdot.Client.get_host_by_ipid("1111")
     
       Returns:
         Multi-level dictionary on success.
@@ -186,14 +193,14 @@ class Connect(object):
   
   def get_host_by_rrid(self, id):
       """
-      This function returns a NetDot-XML object 
-      for the requested RR ID.
+      Given a resource record ID, returns the
+      RR's data 
     
       Arguments: 
         id -- NetDot RR ID
     
       Usage:
-        response = netdot.client.getHostByRRID("1111")
+        response = netdot.Client.get_host_by_rrid("1111")
     
       Returns:
         Multi-level dictionary on success.
@@ -202,14 +209,13 @@ class Connect(object):
   
   def get_host_by_name(self, name):
       """
-      This function returns a NetDot-XML object 
-      for the requested shortname
+      Given a RR name, returns the RR's data
     
       Arguments: 
-        name -- DNS shortname
+        name -- RR label (DNS name)
     
       Usage:
-        response = netdot.client.getHostByName("foo")
+        response = netdot.Client.get_host_by_name("foo")
     
       Returns:
         Multi-level dictionary on success.
@@ -219,13 +225,13 @@ class Connect(object):
   def get_ipblock(self, ipblock):
       """
       This function returns all of the host 
-      records from the provided ip block.
+      records from the provided IP block
     
       Arguments: 
-        ipblock - IpBlock in CIDR notation 
+        ipblock - Subnet address in CIDR notation 
     
       Usage: 
-        response = netdot.client.getIPBlock('192.168.1.0/24')
+        response = netdot.Client.get_ipblock('192.168.1.0/24')
       
       Returns:
         Array of NetDot-XML objects on success
@@ -234,14 +240,14 @@ class Connect(object):
   
   def get_host_address(self, address):
       """
-      This function returns a NetDot-XML object 
-      for the requested IP Address.   
+      Given an IP address, returns the associated
+      records' data
     
       Arguments:
         address -- IP Address in "dotted-quad" syntax
 
       Usage:
-        response = netdot.client.getHostByIPID("192.168.0.1")
+        response = netdot.Client.get_host_address("192.168.0.1")
 
       Returns:
         Multi-level dictionary on success.
@@ -256,7 +262,7 @@ class Connect(object):
         user -- Desired username
 
       Usage:
-        response = netdot.client.getPersonByUsername("user")
+        response = netdot.Client.get_person_by_username("user")
       
       Returns:
         Multi-level dictionary on success.
@@ -271,7 +277,7 @@ class Connect(object):
         id -- Desired User ID
 
       Usage:
-        response = netdot.client.getPersonById("id")
+        response = netdot.Client.get_person_by_id("id")
       
       Returns:
         Multi-level dictionary on success.
@@ -289,11 +295,11 @@ class Connect(object):
       Returns a single-level dict of the requested object and id
     
       Arguments:
-        object -- 'device' or 'host' etc...
+        object -- 'device', 'person',  etc...
         id  --  Object ID
     
       Usage:
-        response = netdot.client.getObjectByID("object", "id")
+        response = netdot.Client.get_object_by_id("object", "id")
     
       Returns:
         Multi-level dictionary on success
@@ -302,13 +308,13 @@ class Connect(object):
   
   def get_contact_by_person_id(self, id):
       """
-      Returns a single-level dict of the requested Person
+      Returns contact information for given person ID
     
       Arguments:
         id  --  person id
     
       Usage:
-        response = netdot.client.getContactByPersonID('id')
+        response = netdot.Client.get_contact_by_person_id('id')
     
       Returns:
         Single-level dictionary on success
@@ -323,13 +329,13 @@ class Connect(object):
   
   def get_contact_by_username(self, user):
       """
-      Returns a single-level dict of the requested Username
+      Returns contact information for given person username
     
       Arguments:
         user  --  NetDot Username
     
       Usage:
-        response = netdot.client.getContactByUsername("mary")
+        response = netdot.Client.get_contact_by_username("mary")
     
       Returns:
         Multi-level dictionary on success
@@ -346,7 +352,7 @@ class Connect(object):
         id  --  NetDot Contact List ID
     
       Usage:
-        response = netdot.client.getGrouprightsByConlistID("id")
+        response = netdot.Client.get_grouprights_by_conlist_id("id")
     
       Returns:
         Multi-level dictionary on success
@@ -363,7 +369,7 @@ class Connect(object):
         cname -- Desired CNAME
       
       Usage: 
-        response = dot.addCnameToARecord('foo.example.com', 'bar.example.com')
+        response = dot.add_cname_to_record('foo.example.com', 'bar.example.com')
       """
       data = { 'cname': cname }
       host = self.getHostByName(name)
@@ -385,7 +391,7 @@ class Connect(object):
         new -- New DNS shortname
 
       Usage: 
-        netdot.client.renameHost('old-name','new-name')
+        netdot.Client.renameHost('old-name','new-name')
       """
       host = self.getHostByName(old)
       rrid = host['RR']['id']
@@ -395,27 +401,33 @@ class Connect(object):
   
   def create_host(self, data):
       """
-      This function takes a dict and creates a new 
-      record in the subnet '192.168.1.0/24' with an ethernet 
-      address of 'XX:XX:XX:XX:XX:XX' and a comment of 'My Server'. 
+      Create DNS records (and optionally) DHCP entries 
+      for a given IP address, using the given
+      name and description. 
+      Passing a subnet address instead of an IP address,
+      the function will create records for the next
+      available IP address in the subnet.
     
       Arguments:
-        data -- dict with at least the following key:value pairs:
-              name:'servername'
-              subnet: 'CIDR notation'
+        data -- dict with the following key:value pairs:
+              name:     'servername'
+              address:  'IP'
+              subnet:   'CIDR'
+              ethernet: 'MAC'
+              info:     'Description string'
 
       Usage: 
-        response = netdot.client.createHost({'name':'my-server',
-                                            'subnet':'192.168.1.0/24',
-                                            'ethernet':'XX:XX:XX:XX:XX:XX',
-                                            'info':'My Server'})
+        response = netdot.Client.create_host({'name':'my-server',
+                                              'subnet':'192.168.1.0/24',
+                                              'ethernet':'XX:XX:XX:XX:XX:XX',
+                                              'info':'My Server'})
 
       Returns: 
         Created record as a multi-level dictionary.
       """
       return self.post("/host", data) 
   
-  def delete_host_by_rrid(self, rrid):
+  def delete_host_by_rrid(self, id):
       """
       This function deletes a hostname record
       for the requested RR ID. This also frees the IP.
@@ -424,13 +436,23 @@ class Connect(object):
         rrid -- NetDot Resource Record ID
     
       Usage:
-        response = netdot.client.deleteHostByRRD("1111")
+        response = netdot.Client.delete_host_by_rrid("1111")
     
       Returns: 
       """
-      return self.delete("/host?rrid=" + rrid)
-  
-    
+      return self.delete("/host?rrid=" + id)
 
+  def delete_host_by_ipid(self, id):
+      """
+      This function deletes all hostname records
+      for the requested Ipblock ID.
     
+      Arguments:
+        ipid -- NetDot Ipblock ID
     
+      Usage:
+        response = netdot.Client.delete_host_by_ipid("1111")
+    
+      Returns: 
+      """
+      return self.delete("/host?ipid=" + id)
