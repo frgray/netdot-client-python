@@ -372,11 +372,11 @@ class Connect(object):
         response = dot.add_cname_to_record('foo.example.com', 'bar.example.com')
       """
       data = { 'cname': cname }
-      host = self.getHostByName(name)
-      for key in host[name]['RR'].iterkeys():
-        for attr, attr_val in host[name]['RR'][key].iteritems():
+      host = self.get_host_by_name(name)
+      for key in host['RR'].iterkeys():
+        for attr, attr_val in host['RR'][key].iteritems():
           if attr == 'name' and attr_val == name:
-            return self.post("/host?rrid=" + host[name]['RR'][key]['id'], data)
+            return self.post("/host?rrid=" + host['RR'][key]['id'], data)
   
   def rename_host(self, old, new):
       """
@@ -393,7 +393,7 @@ class Connect(object):
       Usage: 
         netdot.Client.renameHost('old-name','new-name')
       """
-      host = self.getHostByName(old)
+      host = self.get_host_by_name(old)
       rrid = host['RR']['id']
       data = {}
       data['name'] = new

@@ -45,7 +45,7 @@ r = dot.get('/host?name=my-server-name')
 r = dot.post('/host', host)
 
 name = dot.get_host_by_name('foo')
-cname = dot.add_cname_record('foo','bar.foo.example.com')
+cname = dot.add_cname_to_record('foo','bar.foo.example.com')
 ipid = dot.get_host_by_ipid('11111')
 rrid = dot.get_host_by_rrid('11111')
 
