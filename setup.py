@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name="netdot-client",
-    version="0.1",
+    version="1.0",
     description="Client for the netdot rest API",
     long_description="",
     url="https://github.com/frgray/netdot-client-python",

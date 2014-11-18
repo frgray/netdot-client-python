@@ -43,7 +43,7 @@ def filter_dict(dict, kword):
     dictionary and returns a list of [filtered] key value pairs
     
     Usage:
-      dot.filterDict(dict, ['list', 'of', '.*keywords'])
+      dot.filter_dict(dict, ['list', 'of', '.*keywords'])
       
     Returns:
       Multi-level dictionary on success
@@ -77,12 +77,20 @@ def parse_xml(xml):
     validate_xml(xml)
     data = {}
     xml_root = ET.fromstring(xml)
-    for child in xml_root:
-      if child.tag in data:
-        data[child.tag][child.attrib["id"]] = child.attrib
-      else:
-        data[child.tag] ={}
-        data[child.tag][child.attrib["id"]] = child.attrib
+    if xml_root.attrib:
+        # root has attributes, so we're likely
+        # receiving a single object
+        data = xml_root.attrib
+    else:
+        # No root attributes means that we're
+        # receiving a list of objects
+        for child in xml_root:
+            if child.tag in data:
+                data[child.tag][child.attrib["id"]] = child.attrib
+            else:
+                data[child.tag] ={}
+                data[child.tag][child.attrib["id"]] = child.attrib
+    
     return data
 
 def dump(object):

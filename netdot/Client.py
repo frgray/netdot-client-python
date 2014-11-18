@@ -35,7 +35,7 @@ import re
 import requests
 import Util
 
-__version__ = "0.03"
+__version__ = "1.0"
 
 class Connect(object):
   def __init__(self, username, password, server, debug = 0):
@@ -90,7 +90,7 @@ class Connect(object):
       if response.status_code != 200:
         raise AttributeError('Invalid Credentials')
   
-  def get(self, url):
+  def get_xml(self, url):
       """
       This function provides a simple interface
       into the "GET" function by handling the authentication
@@ -101,7 +101,7 @@ class Connect(object):
         url -- Url to append to the base url
       
       Usage: 
-        response = netdot.Client.get("/url")
+        response = netdot.Client.get_xml("/url")
       
       Returns: 
         XML string output from Netdot
@@ -112,21 +112,21 @@ class Connect(object):
       response.raise_for_status()
       return response.content
 
-  def get_xml(self, url):
+  def get(self, url):
       """
-      This function delegates to get() and parses the
+      This function delegates to get_xml() and parses the
       response xml to return a dict
 
       Arguments:
         url -- Url to append to the base url
       
       Usage: 
-        dict = netdot.Client.get_xml("/url")
+        dict = netdot.Client.get("/url")
       
       Returns: 
         Result as a multi-level dictionary on success.
       """
-      return Util.parse_xml(self.get(url))
+      return Util.parse_xml(self.get_xml(url))
   
   def post(self, url, data):
       """
@@ -189,7 +189,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success.
       """
-      return self.get_xml("/host?ipid=" + id)
+      return self.get("/host?ipid=" + id)
   
   def get_host_by_rrid(self, id):
       """
@@ -205,7 +205,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success.
       """
-      return self.get_xml("/host?rrid=" + id)
+      return self.get("/host?rrid=" + id)
   
   def get_host_by_name(self, name):
       """
@@ -220,7 +220,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success.
       """
-      return self.get_xml("/host?name=" + name)
+      return self.get("/host?name=" + name)
   
   def get_ipblock(self, ipblock):
       """
@@ -236,7 +236,7 @@ class Connect(object):
       Returns:
         Array of NetDot-XML objects on success
       """   
-      return self.get_xml("/host?subnet=" + ipblock)
+      return self.get("/host?subnet=" + ipblock)
   
   def get_host_address(self, address):
       """
@@ -252,7 +252,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success.
       """
-      return self.get_xml("/host?address=" + address)
+      return self.get("/host?address=" + address)
   
   def get_person_by_username(self, user):
       """
@@ -267,7 +267,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success.
       """
-      return self.get_xml("/person?username=" + user)
+      return self.get("/person?username=" + user)
   
   def get_person_by_id(self, id):
       """
@@ -282,7 +282,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success.
       """
-      xml = self.get("/person?id=" + id)
+      xml = self.get_xml("/person?id=" + id)
       xml_root = ET.fromstring(xml)
       person = dict()
     
@@ -304,7 +304,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success
       """
-      return self.get_xml("/" + object + "?id=" + id)
+      return self.get("/" + object + "?id=" + id)
   
   def get_contact_by_person_id(self, id):
       """
@@ -319,7 +319,7 @@ class Connect(object):
       Returns:
         Single-level dictionary on success
       """
-      xml = self.get("/contact?person=" + id)
+      xml = self.get_xml("/contact?person=" + id)
       xml_root = ET.fromstring(xml)
       person = dict()
     
@@ -340,8 +340,8 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success
       """
-      person = self.getPersonByUsername(user)
-      return self.getContactByPersonID(person['id'])    
+      person = self.get_person_by_username(user)
+      return self.get_contact_by_person_id(person['id'])
   
   def get_grouprights_by_conlist_id(self, id):
       """
@@ -357,7 +357,7 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success
       """
-      return self.get_xml("/groupright?contactlist=" + id)
+      return self.get("/groupright?contactlist=" + id)
   
   def add_cname_to_record(self, name, cname):
       """
@@ -372,7 +372,7 @@ class Connect(object):
         response = dot.add_cname_to_record('foo.example.com', 'bar.example.com')
       """
       data = { 'cname': cname }
-      host = self.getHostByName(name)
+      host = self.get_host_by_name(name)
       for key in host[name]['RR'].iterkeys():
         for attr, attr_val in host[name]['RR'][key].iteritems():
           if attr == 'name' and attr_val == name:
@@ -391,9 +391,9 @@ class Connect(object):
         new -- New DNS shortname
 
       Usage: 
-        netdot.Client.renameHost('old-name','new-name')
+        netdot.Client.rename_host('old-name','new-name')
       """
-      host = self.getHostByName(old)
+      host = self.get_host_by_name(old)
       rrid = host['RR']['id']
       data = {}
       data['name'] = new
