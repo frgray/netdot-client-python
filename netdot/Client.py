@@ -60,6 +60,7 @@ class Connect(object):
       self.http = requests.session()
       self.http.verify=False
 
+      self.server = server
       self.base_url = server + '/rest'
       self.login_url = server + '/NetdotLogin'
       self.timeout = 10
@@ -90,6 +91,12 @@ class Connect(object):
       if response.status_code != 200:
         raise AttributeError('Invalid Credentials')
   
+  def logout(self):
+      """
+      Logout of the NetDot API
+      """
+      response = self.http.post(self.server + '/logout.html')
+
   def get_xml(self, url):
       """
       This function provides a simple interface
