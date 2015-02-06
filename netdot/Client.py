@@ -545,4 +545,4 @@ class Connect(object):
       Returns:
         Multi-level dictionary on success
       """
-return self.get("/vlan?VlanGroup=" + id)
+      return self.get("/vlan?VlanGroup=" + id)
