@@ -352,19 +352,36 @@ class Connect(object):
 
   def get_object_by_name(self, object, name):
       """
-      Returns a single-level dict of the requested object by name
+      Returns a multi-level dict of the requested object by name
 
       Arguments:
         object -- 'device', 'person',  etc...
-        id  --  Object ID
+        name  --  name
 
       Usage:
-        response = netdot.Client.get_object_by_id("object", "id")
+        response = netdot.Client.get_object_by_id("object", "name")
 
       Returns:
         Multi-level dictionary on success
       """
       return self.get("/" + object + "?name=" + name)
+
+  def get_object_by_desc(self, object, desc):
+      """
+      Returns a multi-level dict of the requested object by
+      description
+
+      Arguments:
+        object -- 'device', 'person',  etc...
+        desc  --  Object description
+
+      Usage:
+        response = netdot.Client.get_object_by_id("object", "desc")
+
+      Returns:
+        Multi-level dictionary on success
+      """
+      return self.get("/" + object + "?description=" + desc)
 
   def delete_object_by_id(self, object, id):
       """
