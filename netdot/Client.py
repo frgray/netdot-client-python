@@ -376,12 +376,29 @@ class Connect(object):
         desc  --  Object description
 
       Usage:
-        response = netdot.Client.get_object_by_id("object", "desc")
+        response = netdot.Client.get_object_by_desc("object", "desc")
 
       Returns:
         Multi-level dictionary on success
       """
       return self.get("/" + object + "?description=" + desc)
+
+  def get_object_by_info(self, object, info):
+      """
+      Returns a multi-level dict of the requested object by
+      description
+
+      Arguments:
+        object -- 'device', 'person',  etc...
+        info  -- Comment Field 
+
+      Usage:
+        response = netdot.Client.get_object_by_info("object", "info")
+
+      Returns:
+        Multi-level dictionary on success
+      """
+      return self.get("/" + object + "?info=" + info)
 
   def delete_object_by_id(self, object, id):
       """
