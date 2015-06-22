@@ -580,3 +580,60 @@ class Connect(object):
         Multi-level dictionary on success
       """
       return self.get("/vlan?VlanGroup=" + id)
+
+  def get_object_by_filter(self, object, field, value):
+      """
+      Returns a multi-level dict of an objects (device, interface, rr, person)
+      filtered by an object field/attribute
+      Arguments:
+        object -- NetDot object ID
+        field -- NetDot field/attribute of object
+        value -- The value to select from the field.
+
+      Usage:
+        response = netdot.Client.get_object_by_filter(device, name, some-switch)
+
+      Returns:
+        Multi-level dictionary on success
+      """
+      url = "/{}?{}={}".format(object, field, value)
+      return self.get(url)
+
+  def get_device_vlans(self, device):
+      """
+      Returns a multi-level dict of vlans that exist on the supplied device.
+
+      Arguments:
+        device == NetDot Device ID
+
+      Usage:
+        response = netdot.Client.get_device_vlans(device)
+
+      Returns:
+        Multi-level dictionary on success
+      """
+      # empty list to hold our results
+      dev_vlans = []
+
+      # get the interfaces associated with a device
+      dev_ifaces = self.get_object_by_filter('interface', 'device', device)
+
+      # interate through each interface and cross reference against the interfacevlan table
+      for iface in dev_ifaces['Interface'].keys():
+          try:
+            iface_vlans = self.get_object_by_filter('interfacevlan', 'interface', iface)
+            for iv in iface_vlans['InterfaceVlan'].keys():
+                print iv
+                if iface_vlans['InterfaceVlan'][iv]['vlan'] not in dev_vlans:
+                    dev_vlans.append(iface_vlans['InterfaceVlan'][iv]['vlan'])
+          except requests.exceptions.HTTPError as e:
+              # This is caused by SVI interfaces.  They don't have a Vlan
+              # because they are Vlans...
+              pass
+
+      return {"Device": {
+                device : dev_vlans
+                }
+              }
+
+
