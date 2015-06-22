@@ -621,7 +621,7 @@ class Connect(object):
       # interate through each interface and cross reference against the interfacevlan table
       for iface in dev_ifaces['Interface'].keys():
           try:
-            iface_vlans = self.get_object_by_filter('interfacevlan', 'interface', iface['id'])
+            iface_vlans = self.get_object_by_filter('interfacevlan', 'interface', iface)
             for iv in iface_vlans['InterfaceVlan'].keys():
                 if iv['vlan'] not in dev_vlans:
                     dev_vlans.append(iv['vlan'])
