@@ -614,14 +614,21 @@ class Connect(object):
       """
       # empty list to hold our results
       dev_vlans = []
+
       # get the interfaces associated with a device
       dev_ifaces = self.get_object_by_filter('interface', 'device', device)
+
       # interate through each interface and cross reference against the interfacevlan table
       for iface in dev_ifaces['Interface'].keys():
-          iface_vlans = self.get_object_by_filter('interfacevlan', 'interface', iface['id'])
-          for iv in iface_vlans['InterfaceVlan'].keys():
-              if iv['vlan'] not in dev_vlans:
-                  dev_vlans.append(iv['vlan'])
+          try:
+            iface_vlans = self.get_object_by_filter('interfacevlan', 'interface', iface['id'])
+            for iv in iface_vlans['InterfaceVlan'].keys():
+                if iv['vlan'] not in dev_vlans:
+                    dev_vlans.append(iv['vlan'])
+          except requests.exceptions.HTTPError as e:
+              # This is caused by SVI interfaces.  They don't have a Vlan
+              # because they are Vlans...
+              pass
 
       return {"Device": {
                 device : dev_vlans
