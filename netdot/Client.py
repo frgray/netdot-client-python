@@ -580,3 +580,21 @@ class Connect(object):
         Multi-level dictionary on success
       """
       return self.get("/vlan?VlanGroup=" + id)
+
+  def get_object_by_filter(self, object, field, value):
+      """
+      Returns a multi-level dict of an objects (device, interface, rr, person)
+      filtered by an object field/attribute
+      Arguments:
+        object -- NetDot object ID
+        field -- NetDot field/attribute of object
+        value -- The value to select from the field.
+
+      Usage:
+        response = netdot.Client.get_object_by_filter("device", "name", "some-switch")
+
+      Returns:
+        Multi-level dictionary on success
+      """
+      url = "/{}?{}={}".format(object, field, value)
+      return self.get(url)
