@@ -38,7 +38,11 @@ pword = 'my_pass'
 server = "https://netdot.localdomain/netdot"
 debug = 1
 
-dot = netdot.Client.Connect(uname, pword, server, [debug])
+#for verify you can pass the valid ca location to verify or use True to use the default ssl cert verification chain in requests
+# if verify not passed, verify is False by default
+
+dot = netdot.Client.Connect(uname, pword, server, [verify], [debug])
+
 
 # Direct GET/POST/DELETE calls
 r = dot.get('/host?name=my-server-name')
