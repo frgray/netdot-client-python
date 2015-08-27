@@ -38,7 +38,7 @@ import Util
 __version__ = "1.0"
 
 class Connect(object):
-  def __init__(self, username, password, server, debug = 0):
+  def __init__(self, username, password, server, verify = False, debug = 0):
       """
       Class constructor, instantiates a number of
       variables for use in the class.  Mainly the required
@@ -58,7 +58,7 @@ class Connect(object):
       if self.debug:
         print "DEBUG MODE: ON"
       self.http = requests.session()
-      self.http.verify=False
+      self.http.verify=verify
 
       self.server = server
       self.base_url = server + '/rest'
